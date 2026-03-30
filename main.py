@@ -4,7 +4,10 @@ from pydantic import BaseModel
 from typing import Optional
 import uvicorn
 from datetime import datetime
-
+from fastapi.responses import Response
+from weasyprint import HTML as WeasyprintHTML
+from template_pdf import generar_html_autorizacion
+ 
 from costos import calcular_costos_tablet
 
 app = FastAPI(
@@ -101,6 +104,51 @@ def obtener_tabla_costos():
     from costos import TABLA_COSTOS
     return TABLA_COSTOS
 
+class DatosAutorizacion(BaseModel):
+    nombre_completo: str
+    cedula: str
+    cargo: Optional[str] = ""
+    area: Optional[str] = ""
+    serial_tablet: str
+    concepto: Optional[str] = "Daño de Display y reposición de cargador"
+    costo_reparacion: Optional[str] = "548.000"
+    costo_cargador: Optional[str] = "90.000"
+    total: str
+    numero_cuotas: Optional[str] = "1"
+    valor_cuota: Optional[str] = None
+    dia: Optional[str] = None
+    mes: Optional[str] = None
+    anio: Optional[str] = None
+    ciudad: Optional[str] = "Bogotá"
+    numero_documento: Optional[str] = None
+ 
+ 
+@app.post("/generar-pdf")
+def generar_pdf(datos: DatosAutorizacion):
+    """
+    Recibe los datos del colaborador y genera el PDF de
+    Autorización de Descuento con el formato Würth.
+    Devuelve el archivo PDF como binario para que Make.com
+    lo suba directamente a Google Drive.
+    """
+    try:
+        html = generar_html_autorizacion(datos.dict())
+ 
+        pdf_bytes = WeasyprintHTML(string=html).write_pdf()
+ 
+        nombre_archivo = f"Descuento_tablet-{datos.nombre_completo.replace(' ', '_')}.pdf"
+ 
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{nombre_archivo}"',
+                "X-Filename": nombre_archivo,
+            }
+        )
+ 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generando PDF: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
