@@ -4,10 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 import uvicorn
 from datetime import datetime
-from fastapi.responses import Response
-from weasyprint import HTML as WeasyprintHTML
-from template_pdf import generar_html_autorizacion
- 
+
 from costos import calcular_costos_tablet
 
 app = FastAPI(
@@ -121,34 +118,6 @@ class DatosAutorizacion(BaseModel):
     anio: Optional[str] = None
     ciudad: Optional[str] = "Bogotá"
     numero_documento: Optional[str] = None
- 
- 
-@app.post("/generar-pdf")
-def generar_pdf(datos: DatosAutorizacion):
-    """
-    Recibe los datos del colaborador y genera el PDF de
-    Autorización de Descuento con el formato Würth.
-    Devuelve el archivo PDF como binario para que Make.com
-    lo suba directamente a Google Drive.
-    """
-    try:
-        html = generar_html_autorizacion(datos.dict())
- 
-        pdf_bytes = WeasyprintHTML(string=html).write_pdf()
- 
-        nombre_archivo = f"Descuento_tablet-{datos.nombre_completo.replace(' ', '_')}.pdf"
- 
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={
-                "Content-Disposition": f'attachment; filename="{nombre_archivo}"',
-                "X-Filename": nombre_archivo,
-            }
-        )
- 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generando PDF: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
