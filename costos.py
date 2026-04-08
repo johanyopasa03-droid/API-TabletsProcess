@@ -59,9 +59,7 @@ def normalizar_tipo_dano(tipo_dano: str | None) -> str:
     if not tipo_dano:
         return "sin_dano"
     td = tipo_dano.lower().strip()
-    if "display" in td and "visor" in td:
-        return "daño_display_visor"
-    elif "display" in td:
+    if "display" in td:
         return "daño_display"
     elif "visor" in td:
         return "daño_visor"
@@ -87,17 +85,9 @@ def calcular_costos_tablet(datos: dict) -> dict:
 
     items = []
     alertas = []
-
-    # ── 1. Revisión general (siempre aplica) ──────────────────────────
-    items.append({
-        "concepto": "Revisión general",
-        "aplica": True,
-        "costo": costos_marca["revision_general"],
-        "observacion": "Costo fijo por ingreso al proceso"
-    })
-
+    
     # ── 2. Daño de pantalla ───────────────────────────────────────────
-    if tipo_dano_key in ["daño_display", "daño_visor", "daño_display_visor"]:
+    if tipo_dano_key in ["daño_display", "daño_visor"]:
         costo_dano = costos_marca[tipo_dano_key]
         items.append({
             "concepto": f"Reparación: {tipo_dano or tipo_dano_key.replace('_', ' ').title()}",
