@@ -18,7 +18,6 @@ TABLA_COSTOS = {
         "sin_forro": 35000,
         "bloqueo_pin": 40000,
         "restablecimiento_fabrica": 0,   # sin costo adicional
-        "revision_general": 20000,
     },
     "lenovo": {
         "daño_display": 220000,
@@ -28,7 +27,6 @@ TABLA_COSTOS = {
         "sin_forro": 30000,
         "bloqueo_pin": 40000,
         "restablecimiento_fabrica": 0,
-        "revision_general": 20000,
     }
 }
 
