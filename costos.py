@@ -11,21 +11,17 @@ from datetime import datetime
 # ─────────────────────────────────────────────
 TABLA_COSTOS = {
     "samsung": {
-        "daño_display": 280000,
-        "daño_visor": 150000,
-        "daño_display_visor": 380000,
-        "sin_cargador": 55000,
-        "sin_forro": 35000,
-        "bloqueo_pin": 40000,
+        "daño_display": 548000,
+        "daño_visor": 372400,
+        "sin_cargador": 90000,
+        "bloqueo_pin": 175733,
         "restablecimiento_fabrica": 0,   # sin costo adicional
     },
     "lenovo": {
-        "daño_display": 220000,
-        "daño_visor": 120000,
-        "daño_display_visor": 310000,
-        "sin_cargador": 50000,
-        "sin_forro": 30000,
-        "bloqueo_pin": 40000,
+        "daño_display": 100000,
+        "daño_visor": 100000,
+        "sin_cargador": 90000,
+        "bloqueo_pin": 133333,
         "restablecimiento_fabrica": 0,
     }
 }
