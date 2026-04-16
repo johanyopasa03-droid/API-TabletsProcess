@@ -32,7 +32,7 @@ TABLA_COSTOS = {
 
 # Palabras clave para identificar marca desde el serial
 MARCAS_SERIAL = {
-    "samsung": ["SM-", "SAM", "GT-", "HA1", "HA2", "HA3"],  # añade prefijos reales
+    "samsung": ["SM-", "SAM", "GT-", "HA1", "HA2", "HA3","R9","R9","R5"],  # añade prefijos reales
     "lenovo":  ["LEN", "TB-", "ZA", "LEV"],
 }
 
