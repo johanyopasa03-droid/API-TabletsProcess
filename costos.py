@@ -13,7 +13,7 @@ TABLA_COSTOS = {
     "samsung": {
         "daño_display": 548000,
         "daño_visor": 372400,
-        "sin_cargador": 90000,
+#        "sin_cargador": 90000,
         "adaptador_carga":87500,
         "cable":23000,
         "bloqueo_pin": 175733,
@@ -22,7 +22,7 @@ TABLA_COSTOS = {
     "lenovo": {
         "daño_display": 100000,
         "daño_visor": 100000,
-        "sin_cargador": 90000,
+   #     "sin_cargador": 90000,
         "adaptador_carga":87500,
         "cable":23000,
         "bloqueo_pin": 133333,
@@ -79,7 +79,7 @@ def calcular_costos_tablet(datos: dict) -> dict:
     estado          = datos.get("estado_recibido", "Buen Estado")
     tipo_dano       = datos.get("tipo_dano", "")
     tiene_forro     = datos.get("forro", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
-    tiene_cargador  = datos.get("cargador", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
+ #   tiene_cargador  = datos.get("cargador", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     adaptador_carga  = datos.get("adaptador_carga", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     cable  = datos.get("cable", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     tiene_pin       = datos.get("bloqueo_pin", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
@@ -113,7 +113,7 @@ def calcular_costos_tablet(datos: dict) -> dict:
         })
 
     # ── 3. Cargador faltante ──────────────────────────────────────────
-    if not tiene_cargador:
+"""    if not tiene_cargador:
         items.append({
             "concepto": "Reposición de cargador",
             "aplica": True,
@@ -126,7 +126,7 @@ def calcular_costos_tablet(datos: dict) -> dict:
             "aplica": False,
             "costo": 0,
             "observacion": "Cargador entregado ✓"
-        })
+        }) """"
     if not adaptador_carga:
         items.append({
             "concepto": "Reposición de adptador de carga",
