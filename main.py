@@ -27,8 +27,8 @@ class TabletIngreso(BaseModel):
     tipo_dano: Optional[str] = None  # "Daño de Display" | "Daño de Visor" | "Daño de Display y Visor" | "Sin Daño"
     forro: Optional[str] = "No"   # "Sí" | "No"
     cargador: Optional[str] = "No"  # "Sí" | "No"
-    adaptador_carga: Optional[str] = "No"  # "Sí" | "No"
-    cable: Optional[str] = "No"  # "Sí" | "No"
+    # adaptador_carga: Optional[str] = "No"  # "Sí" | "No"
+    # cable: Optional[str] = "No"  # "Sí" | "No"
     observaciones: Optional[str] = ""
     restablecimiento_fabrica: Optional[str] = "No"  # "Sí" | "No"
     bloqueo_pin: Optional[str] = "No"  # "Sí" | "No"
@@ -113,8 +113,8 @@ class DatosAutorizacion(BaseModel):
     costo_reparacion: Optional[str] = "548.000"
    # costo_cargador: Optional[str] = "90.000"
     costo_cargador: Optional[str] = "0"
-    adaptador_carga: Optional[str] = "87.500"
-    cable: Optional[str] = "23.000"
+   # adaptador_carga: Optional[str] = "87.500"
+   # cable: Optional[str] = "23.000"
     total: str
     numero_cuotas: Optional[str] = "1"
     valor_cuota: Optional[str] = None
