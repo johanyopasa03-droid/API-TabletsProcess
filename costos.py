@@ -13,7 +13,7 @@ TABLA_COSTOS = {
     "samsung": {
         "daño_display": 548000,
         "daño_visor": 372400,
-#        "sin_cargador": 90000,
+       # "sin_cargador": 0,
         "adaptador_carga":87500,
         "cable":23000,
         "bloqueo_pin": 175733,
@@ -22,7 +22,7 @@ TABLA_COSTOS = {
     "lenovo": {
         "daño_display": 100000,
         "daño_visor": 100000,
-   #     "sin_cargador": 90000,
+     #   "sin_cargador": 0,
         "adaptador_carga":87500,
         "cable":23000,
         "bloqueo_pin": 133333,
@@ -211,8 +211,12 @@ def calcular_costos_tablet(datos: dict) -> dict:
     resumen_partes = []
     if tipo_dano_key != "sin_dano":
         resumen_partes.append(tipo_dano or "daño pantalla")
-    if not tiene_cargador:
-        resumen_partes.append("sin cargador")
+    # if not tiene_cargador:
+    #    resumen_partes.append("sin cargador")
+    if not adaptador_carga:
+        resumen_partes.append("sin adaptador de carga")
+            if not cable:
+        resumen_partes.append("sin cable de datos")
     if not tiene_forro:
         resumen_partes.append("sin forro")
     if tiene_pin:
