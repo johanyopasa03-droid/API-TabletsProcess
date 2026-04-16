@@ -11,37 +11,40 @@ from datetime import datetime
 # ─────────────────────────────────────────────
 TABLA_COSTOS = {
     "samsung": {
-        "daño_display": 548000,
-        "daño_visor": 372400,
-       # "sin_cargador": 0,
-        "adaptador_carga":87500,
-        "cable":23000,
-        "bloqueo_pin": 175733,
-        "restablecimiento_fabrica": 0,   # sin costo adicional
+        "daño_display":           548000,
+        "daño_visor":             372400,
+        "daño_display_visor":     920400,   # FIX: caso combinado (548000 + 372400)
+        "adaptador_carga":         87500,
+        "cable":                   23000,
+        "sin_forro":               50000,   # FIX: clave faltante — ajusta el valor real
+        "bloqueo_pin":            175733,
+        "restablecimiento_fabrica":    0,
     },
     "lenovo": {
-        "daño_display": 100000,
-        "daño_visor": 100000,
-     #   "sin_cargador": 0,
-        "adaptador_carga":87500,
-        "cable":23000,
-        "bloqueo_pin": 133333,
-        "restablecimiento_fabrica": 0,
+        "daño_display":           100000,
+        "daño_visor":             100000,
+        "daño_display_visor":     200000,   # FIX: caso combinado
+        "adaptador_carga":         87500,
+        "cable":                   23000,
+        "sin_forro":               50000,   # FIX: clave faltante — ajusta el valor real
+        "bloqueo_pin":            133333,
+        "restablecimiento_fabrica":    0,
     }
 }
 
 # Palabras clave para identificar marca desde el serial
 MARCAS_SERIAL = {
-    "samsung": ["SM-", "SAM", "GT-", "HA1", "HA2", "HA3","R9","R9","R5"],  # añade prefijos reales
+    "samsung": ["SM-", "SAM", "GT-", "HA1", "HA2", "HA3", "R9", "R5"],  # FIX: "R9" duplicado eliminado
     "lenovo":  ["LEN", "TB-", "ZA", "LEV"],
 }
 
 # Campos que generan alertas de atención
 ALERTAS_CONFIG = {
-    "bloqueo_pin": "⚠️ Tablet con PIN de bloqueo activo - requiere gestión con el usuario",
-    "restablecimiento_fabrica": "🔄 Requiere restablecimiento de fábrica antes de asignar",
-    "daño_display": "🖥️ Display dañado - coordinar con proveedor de repuestos",
-    "daño_visor": "🔍 Visor dañado - coordinar con proveedor de repuestos",
+    "bloqueo_pin":             "⚠️ Tablet con PIN de bloqueo activo - requiere gestión con el usuario",
+    "restablecimiento_fabrica":"🔄 Requiere restablecimiento de fábrica antes de asignar",
+    "daño_display":            "🖥️ Display dañado - coordinar con proveedor de repuestos",
+    "daño_visor":              "🔍 Visor dañado - coordinar con proveedor de repuestos",
+    "daño_display_visor":      "🖥️🔍 Display y Visor dañados - coordinar con proveedor de repuestos",
 }
 
 
@@ -51,19 +54,24 @@ def detectar_marca(serial_id: str) -> str:
     for marca, prefijos in MARCAS_SERIAL.items():
         if any(serial_upper.startswith(p) or p in serial_upper for p in prefijos):
             return marca
-    # Si no detecta, lanza error claro
     raise ValueError(
         f"No se pudo determinar la marca para el serial '{serial_id}'. "
-        f"Prefijos reconocidos: Samsung {MARCAS_SERIAL['samsung']}, Lenovo {MARCAS_SERIAL['lenovo']}"
+        f"Prefijos reconocidos: Samsung {MARCAS_SERIAL['samsung']}, "
+        f"Lenovo {MARCAS_SERIAL['lenovo']}"
     )
 
 
 def normalizar_tipo_dano(tipo_dano: str | None) -> str:
-    """Normaliza el campo tipo_daño a una clave interna."""
+    """
+    Normaliza el campo tipo_daño a una clave interna.
+    FIX: ahora detecta correctamente el caso combinado 'Display y Visor'.
+    """
     if not tipo_dano:
         return "sin_dano"
     td = tipo_dano.lower().strip()
-    if "display" in td:
+    if "display" in td and "visor" in td:   # FIX: caso combinado primero
+        return "daño_display_visor"
+    elif "display" in td:
         return "daño_display"
     elif "visor" in td:
         return "daño_visor"
@@ -79,144 +87,127 @@ def calcular_costos_tablet(datos: dict) -> dict:
     estado          = datos.get("estado_recibido", "Buen Estado")
     tipo_dano       = datos.get("tipo_dano", "")
     tiene_forro     = datos.get("forro", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
- #   tiene_cargador  = datos.get("cargador", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
-    adaptador_carga  = datos.get("adaptador_carga", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
-    cable  = datos.get("cable", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
+    adaptador_carga = datos.get("adaptador_carga", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
+    cable           = datos.get("cable", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     tiene_pin       = datos.get("bloqueo_pin", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     restablecer     = datos.get("restablecimiento_fabrica", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
 
-    marca = detectar_marca(serial_id)
+    marca        = detectar_marca(serial_id)
     costos_marca = TABLA_COSTOS[marca]
     tipo_dano_key = normalizar_tipo_dano(tipo_dano)
 
-    items = []
+    items   = []
     alertas = []
-    
-    # ── 2. Daño de pantalla ───────────────────────────────────────────
-    if tipo_dano_key in ["daño_display", "daño_visor"]:
+
+    # ── 1. Daño de pantalla ───────────────────────────────────────────
+    if tipo_dano_key in ["daño_display", "daño_visor", "daño_display_visor"]:
         costo_dano = costos_marca[tipo_dano_key]
         items.append({
-            "concepto": f"Reparación: {tipo_dano or tipo_dano_key.replace('_', ' ').title()}",
-            "aplica": True,
-            "costo": costo_dano,
+            "concepto":    f"Reparación: {tipo_dano or tipo_dano_key.replace('_', ' ').title()}",
+            "aplica":      True,
+            "costo":       costo_dano,
             "observacion": f"Según tabla de costos {marca.title()}"
         })
-        for key in ["daño_display", "daño_visor"]:
-            if key in tipo_dano_key:
-                alertas.append(ALERTAS_CONFIG.get(key, ""))
+        alertas.append(ALERTAS_CONFIG.get(tipo_dano_key, ""))
     else:
         items.append({
-            "concepto": "Reparación de pantalla",
-            "aplica": False,
-            "costo": 0,
+            "concepto":    "Reparación de pantalla",
+            "aplica":      False,
+            "costo":       0,
             "observacion": "Sin daño de display o visor reportado"
         })
 
-    # ── 3. Cargador faltante ──────────────────────────────────────────
- #  if not tiene_cargador:
- #       items.append({
-   #           "concepto": "Reposición de cargador",
-   #           "aplica": True,
-   #           "costo": costos_marca["sin_cargador"],
-   #           "observacion": "No entregó cargador con la tablet"
-    #      })
-  #    else:
-    #      items.append({
-    #          "concepto": "Reposición de cargador",
-    #          "aplica": False,
-     #         "costo": 0,
-     #         "observacion": "Cargador entregado ✓"
-    #    }) 
-
+    # ── 2. Adaptador de carga ─────────────────────────────────────────
     if not adaptador_carga:
         items.append({
-            "concepto": "Reposición de adptador de carga",
-            "aplica": True,
-            "costo": costos_marca["adaptador_carga"],
-            "observacion": "No entregó adapatador de carga con la tablet o presenta fallo"
+            "concepto":    "Reposición de adaptador de carga",   # FIX: typo corregido
+            "aplica":      True,
+            "costo":       costos_marca["adaptador_carga"],
+            "observacion": "No entregó adaptador de carga con la tablet o presenta fallo"  # FIX: typo
         })
     else:
         items.append({
-            "concepto": "Reposición de adaptador de carga",
-            "aplica": False,
-            "costo": 0,
-            "observacion": "Adaptador de carga Entregado ✓"
+            "concepto":    "Reposición de adaptador de carga",
+            "aplica":      False,
+            "costo":       0,
+            "observacion": "Adaptador de carga entregado ✓"
         })
+
+    # ── 3. Cable de datos ─────────────────────────────────────────────
     if not cable:
         items.append({
-            "concepto": "Reposición de cable de datos",
-            "aplica": True,
-            "costo": costos_marca["cable"],
+            "concepto":    "Reposición de cable de datos",
+            "aplica":      True,
+            "costo":       costos_marca["cable"],
             "observacion": "No entregó cable de datos con la tablet"
         })
     else:
         items.append({
-            "concepto": "Reposición de cable de datos",
-            "aplica": False,
-            "costo": 0,
+            "concepto":    "Reposición de cable de datos",
+            "aplica":      False,
+            "costo":       0,
             "observacion": "Cable entregado ✓"
         })
-    # ── 4. Forro faltante ─────────────────────────────────────────────
+
+    # ── 4. Forro/estuche ──────────────────────────────────────────────
     if not tiene_forro:
         items.append({
-            "concepto": "Reposición de forro/estuche",
-            "aplica": True,
-            "costo": costos_marca["sin_forro"],
+            "concepto":    "Reposición de forro/estuche",
+            "aplica":      True,
+            "costo":       costos_marca["sin_forro"],   # FIX: clave ahora existe en TABLA_COSTOS
             "observacion": "No entregó forro con la tablet"
         })
     else:
         items.append({
-            "concepto": "Reposición de forro/estuche",
-            "aplica": False,
-            "costo": 0,
+            "concepto":    "Reposición de forro/estuche",
+            "aplica":      False,
+            "costo":       0,
             "observacion": "Forro entregado ✓"
         })
 
     # ── 5. Bloqueo PIN ────────────────────────────────────────────────
     if tiene_pin:
         items.append({
-            "concepto": "Gestión desbloqueo PIN",
-            "aplica": True,
-            "costo": costos_marca["bloqueo_pin"],
+            "concepto":    "Gestión desbloqueo PIN",
+            "aplica":      True,
+            "costo":       costos_marca["bloqueo_pin"],
             "observacion": "Tablet llegó con PIN activo"
         })
         alertas.append(ALERTAS_CONFIG["bloqueo_pin"])
     else:
         items.append({
-            "concepto": "Gestión desbloqueo PIN",
-            "aplica": False,
-            "costo": 0,
+            "concepto":    "Gestión desbloqueo PIN",
+            "aplica":      False,
+            "costo":       0,
             "observacion": "Sin bloqueo PIN ✓"
         })
 
     # ── 6. Restablecimiento de fábrica ────────────────────────────────
     if restablecer:
         items.append({
-            "concepto": "Restablecimiento de fábrica",
-            "aplica": True,
-            "costo": costos_marca["restablecimiento_fabrica"],
+            "concepto":    "Restablecimiento de fábrica",
+            "aplica":      True,
+            "costo":       costos_marca["restablecimiento_fabrica"],
             "observacion": "Proceso requerido antes de asignación"
         })
         alertas.append(ALERTAS_CONFIG["restablecimiento_fabrica"])
     else:
         items.append({
-            "concepto": "Restablecimiento de fábrica",
-            "aplica": False,
-            "costo": 0,
+            "concepto":    "Restablecimiento de fábrica",
+            "aplica":      False,
+            "costo":       0,
             "observacion": "No requerido"
         })
 
-    # ── Totales ───────────────────────────────────────────────────────
+    # ── Totales y resumen ─────────────────────────────────────────────
     costo_total = sum(item["costo"] for item in items if item["aplica"])
 
     resumen_partes = []
     if tipo_dano_key != "sin_dano":
         resumen_partes.append(tipo_dano or "daño pantalla")
-    # if not tiene_cargador:
-    #    resumen_partes.append("sin cargador")
     if not adaptador_carga:
         resumen_partes.append("sin adaptador de carga")
-            if not cable:
+    if not cable:                                           # FIX: indentación corregida
         resumen_partes.append("sin cable de datos")
     if not tiene_forro:
         resumen_partes.append("sin forro")
@@ -232,13 +223,13 @@ def calcular_costos_tablet(datos: dict) -> dict:
     )
 
     return {
-        "serial_id": serial_id,
-        "marca": marca.title(),
-        "modelo": serial_id,
-        "fecha_procesado": datetime.utcnow().isoformat() + "Z",
-        "estado_recibido": estado,
-        "items": items,
-        "costo_total": costo_total,
-        "resumen": resumen,
+        "serial_id":        serial_id,
+        "marca":            marca.title(),
+        "modelo":           serial_id,
+        "fecha_procesado":  datetime.utcnow().isoformat() + "Z",
+        "estado_recibido":  estado,
+        "items":            items,
+        "costo_total":      costo_total,
+        "resumen":          resumen,
         "requiere_atencion": [a for a in alertas if a],
     }
