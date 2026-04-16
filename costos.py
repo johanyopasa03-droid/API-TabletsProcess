@@ -14,6 +14,8 @@ TABLA_COSTOS = {
         "daño_display": 548000,
         "daño_visor": 372400,
         "sin_cargador": 90000,
+        "adaptador_carga":87500,
+        "cable":23000,
         "bloqueo_pin": 175733,
         "restablecimiento_fabrica": 0,   # sin costo adicional
     },
@@ -21,6 +23,8 @@ TABLA_COSTOS = {
         "daño_display": 100000,
         "daño_visor": 100000,
         "sin_cargador": 90000,
+        "adaptador_carga":87500,
+        "cable":23000,
         "bloqueo_pin": 133333,
         "restablecimiento_fabrica": 0,
     }
@@ -76,6 +80,8 @@ def calcular_costos_tablet(datos: dict) -> dict:
     tipo_dano       = datos.get("tipo_dano", "")
     tiene_forro     = datos.get("forro", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     tiene_cargador  = datos.get("cargador", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
+    adaptador_carga  = datos.get("adaptador_carga", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
+    cable  = datos.get("cable", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     tiene_pin       = datos.get("bloqueo_pin", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
     restablecer     = datos.get("restablecimiento_fabrica", "No").strip().lower() in ["sí", "si", "yes", "1", "true"]
 
@@ -121,7 +127,34 @@ def calcular_costos_tablet(datos: dict) -> dict:
             "costo": 0,
             "observacion": "Cargador entregado ✓"
         })
-
+    if not adaptador_carga:
+        items.append({
+            "concepto": "Reposición de adptador de carga",
+            "aplica": True,
+            "costo": costos_marca["adaptador_carga"],
+            "observacion": "No entregó adapatador de carga con la tablet o presenta fallo"
+        })
+    else:
+        items.append({
+            "concepto": "Reposición de adaptador de carga",
+            "aplica": False,
+            "costo": 0,
+            "observacion": "Adaptador de carga Entregado ✓"
+        })
+    if not cable:
+        items.append({
+            "concepto": "Reposición de cable de datos",
+            "aplica": True,
+            "costo": costos_marca["cable"],
+            "observacion": "No entregó cable de datos con la tablet"
+        })
+    else:
+        items.append({
+            "concepto": "Reposición de cable de datos",
+            "aplica": False,
+            "costo": 0,
+            "observacion": "Cable entregado ✓"
+        })
     # ── 4. Forro faltante ─────────────────────────────────────────────
     if not tiene_forro:
         items.append({
