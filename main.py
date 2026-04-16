@@ -111,7 +111,9 @@ class DatosAutorizacion(BaseModel):
     serial_tablet: str
     concepto: Optional[str] = "Daño de Display y reposición de cargador"
     costo_reparacion: Optional[str] = "548.000"
-    costo_cargador: Optional[str] = "90.000"
+   # costo_cargador: Optional[str] = "90.000"
+    adaptador_carga: Optional[str] = "87.500"
+    cargador: Optional[str] = "23.000"
     total: str
     numero_cuotas: Optional[str] = "1"
     valor_cuota: Optional[str] = None
