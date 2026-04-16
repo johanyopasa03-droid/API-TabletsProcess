@@ -126,7 +126,7 @@ def calcular_costos_tablet(datos: dict) -> dict:
             "aplica": False,
             "costo": 0,
             "observacion": "Cargador entregado ✓"
-        }) """"
+        }) """
     if not adaptador_carga:
         items.append({
             "concepto": "Reposición de adptador de carga",
