@@ -113,20 +113,21 @@ def calcular_costos_tablet(datos: dict) -> dict:
         })
 
     # ── 3. Cargador faltante ──────────────────────────────────────────
-"""    if not tiene_cargador:
-        items.append({
-            "concepto": "Reposición de cargador",
-            "aplica": True,
-            "costo": costos_marca["sin_cargador"],
-            "observacion": "No entregó cargador con la tablet"
-        })
-    else:
-        items.append({
-            "concepto": "Reposición de cargador",
-            "aplica": False,
-            "costo": 0,
-            "observacion": "Cargador entregado ✓"
-        }) """
+ #  if not tiene_cargador:
+ #       items.append({
+   #           "concepto": "Reposición de cargador",
+   #           "aplica": True,
+   #           "costo": costos_marca["sin_cargador"],
+   #           "observacion": "No entregó cargador con la tablet"
+    #      })
+  #    else:
+    #      items.append({
+    #          "concepto": "Reposición de cargador",
+    #          "aplica": False,
+     #         "costo": 0,
+     #         "observacion": "Cargador entregado ✓"
+        }) 
+
     if not adaptador_carga:
         items.append({
             "concepto": "Reposición de adptador de carga",
